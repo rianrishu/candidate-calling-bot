@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidate Calling Bot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .candidate-card {
+            margin-bottom: 1rem;
+        }
+        .status-badge {
+            float: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="mb-4">Candidate Calling Bot</h1>
+        
+        <div class="row mb-4">
+            <div class="col">
+                <button id="refreshBtn" class="btn btn-primary">Refresh Candidates</button>
+                <button id="startCallingBtn" class="btn btn-success" disabled>Start Calling</button>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <div id="candidatesList">
+                    <!-- Candidates will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedCandidates = new Set();
+
+        function updateStartCallingButton() {
+            const startCallingBtn = document.getElementById('startCallingBtn');
+            startCallingBtn.disabled = selectedCandidates.size === 0;
+        }
+
+        function toggleCandidate(candidateId) {
+            if (selectedCandidates.has(candidateId)) {
+                selectedCandidates.delete(candidateId);
+            } else {
+                selectedCandidates.add(candidateId);
+            }
+            updateStartCallingButton();
+        }
+
+        function getStatusBadgeClass(status) {
+            const statusClasses = {
+                'pending': 'bg-secondary',
+                'calling': 'bg-primary',
+                'in_progress': 'bg-info',
+                'completed': 'bg-success',
+                'failed': 'bg-danger',
+                'busy': 'bg-warning',
+                'no_answer': 'bg-warning',
+                'canceled': 'bg-secondary'
+            };
+            return statusClasses[status] || 'bg-secondary';
+        }
+
+        function loadCandidates() {
+            fetch('/fetch-candidates')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const candidatesList = document.getElementById('candidatesList');
+                        candidatesList.innerHTML = '';
+                        
+                        data.candidates.forEach(candidate => {
+                            const card = document.createElement('div');
+                            card.className = 'card candidate-card';
+                            card.innerHTML = `
+                                <div class="card-body">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" 
+                                               id="candidate-${candidate.freshteam_id}"
+                                               ${selectedCandidates.has(candidate.freshteam_id) ? 'checked' : ''}
+                                               onchange="toggleCandidate('${candidate.freshteam_id}')">
+                                        <label class="form-check-label" for="candidate-${candidate.freshteam_id}">
+                                            <strong>${candidate.name}</strong>
+                                            <span class="badge ${getStatusBadgeClass(candidate.status)} status-badge">
+                                                ${candidate.status}
+                                            </span>
+                                        </label>
+                                    </div>
+                                    <p class="card-text">
+                                        Phone: ${candidate.phone}<br>
+                                        Role ID: ${candidate.role_id}<br>
+                                        <a href="${candidate.jd_link}" target="_blank">Job Description</a>
+                                    </p>
+                                </div>
+                            `;
+                            candidatesList.appendChild(card);
+                        });
+                    } else {
+                        alert('Error loading candidates: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error loading candidates');
+                });
+        }
+
+        document.getElementById('refreshBtn').addEventListener('click', loadCandidates);
+        
+        document.getElementById('startCallingBtn').addEventListener('click', () => {
+            if (selectedCandidates.size === 0) return;
+            
+            fetch('/initiate-calls', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    candidate_ids: Array.from(selectedCandidates)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Calls initiated successfully');
+                    selectedCandidates.clear();
+                    updateStartCallingButton();
+                    loadCandidates();
+                } else {
+                    alert('Error initiating calls: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error initiating calls');
+            });
+        });
+
+        // Load candidates when the page loads
+        loadCandidates();
+    </script>
+</body>
+</html> 
