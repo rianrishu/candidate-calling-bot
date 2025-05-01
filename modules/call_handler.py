@@ -150,9 +150,9 @@ class CallHandler:
             print(f"Traceback: {traceback.format_exc()}")
             raise
 
-    def handle_consent(self, digits):
+    def handle_consent(self, digits, candidate_id=None):
         """Handle the candidate's consent response."""
-        print(f"Handling consent with digits: {digits}")
+        print(f"Handling consent with digits: {digits}, candidate_id: {candidate_id}")
         response = VoiceResponse()
         
         if digits == '1':
@@ -161,7 +161,7 @@ class CallHandler:
                 "application. Please answer each question after the beep.",
                 voice='Polly.Raveena'
             )
-            return str(self.ask_next_question(response, 1))
+            return str(self.ask_next_question(response, 1, candidate_id))
         else:
             response.say(
                 "Thank you for your time. We respect your decision. Have a great day!",
@@ -171,7 +171,7 @@ class CallHandler:
         
         return str(response)
 
-    def ask_next_question(self, response, question_number):
+    def ask_next_question(self, response, question_number, candidate_id=None):
         """Ask the next question in the sequence."""
         print(f"Asking question number: {question_number}")
         questions = {
@@ -186,9 +186,17 @@ class CallHandler:
         
         if question_number <= len(questions):
             response.say(questions[question_number], voice='Polly.Raveena')
+            
+            # Create gather URL with candidate_id
+            gather_url = f'{self.ngrok_url}/gather'
+            if candidate_id:
+                gather_url += f'?candidate_id={candidate_id}&question={question_number}'
+            else:
+                gather_url += f'?question={question_number}'
+                
             gather = Gather(
                 input='speech',
-                action=f'/gather?question={question_number}',
+                action=gather_url,
                 method='POST',
                 language='en-IN',
                 timeout=10,
@@ -196,8 +204,13 @@ class CallHandler:
             )
             response.append(gather)
             
-            # If no input is received, repeat the question
-            response.redirect(f'/voice?question={question_number}')
+            # If no input is received, repeat the question with candidate_id
+            redirect_url = f'{self.ngrok_url}/voice'
+            if candidate_id:
+                redirect_url += f'?candidate_id={candidate_id}&question={question_number}'
+            else:
+                redirect_url += f'?question={question_number}'
+            response.redirect(redirect_url)
         else:
             response.say(
                 "Thank you for providing all the information. If shortlisted, "

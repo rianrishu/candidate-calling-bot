@@ -52,8 +52,8 @@ class VoiceProcessor:
                 print(f"Consent digits: {digits}")
                 if not digits:
                     # If no digits received, repeat the initial message
-                    return self.call_handler.create_initial_twiml()
-                return self.call_handler.handle_consent(digits)
+                    return self.call_handler.create_initial_twiml(candidate_id)
+                return self.call_handler.handle_consent(digits, candidate_id)
             
             # Process speech response
             speech_result = request.form.get('SpeechResult')
@@ -84,14 +84,14 @@ class VoiceProcessor:
                     self.save_responses(candidate_id)
             
             # Move to next question
-            return self.call_handler.ask_next_question(VoiceResponse(), question_number + 1)
+            return self.call_handler.ask_next_question(VoiceResponse(), question_number + 1, candidate_id)
             
         except Exception as e:
             print(f"Error processing response: {str(e)}")
             # If there's an error, try to continue with the next question
             response = VoiceResponse()
             response.say("I'm sorry, I didn't catch that. Let's move on to the next question.", voice='Polly.Raveena')
-            return str(self.call_handler.ask_next_question(response, question_number + 1))
+            return str(self.call_handler.ask_next_question(response, question_number + 1, candidate_id))
 
     def save_responses(self, candidate_id):
         """Save the gathered responses to Google Sheets."""
