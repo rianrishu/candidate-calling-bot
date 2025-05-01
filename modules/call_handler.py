@@ -101,34 +101,54 @@ class CallHandler:
             self.sheets_manager.update_candidate_status(candidate_id, 'error', {'error': str(e)})
             raise
 
-    def create_initial_twiml(self):
+    def create_initial_twiml(self, candidate_id=None):
         """Create initial TwiML for the call."""
-        print("Creating initial TwiML")
-        response = VoiceResponse()
-        
-        # Add a pause to ensure the call is connected
-        response.pause(length=1)
-        
-        response.say(
-            "Hello! I'm calling from Nuclei regarding your job application. "
-            "This call will be recorded for quality purposes. "
-            "Do you consent to proceed with the interview? Press 1 for yes, or 2 for no.",
-            voice='Polly.Raveena'
-        )
-        
-        gather = Gather(
-            num_digits=1,
-            action='/gather',
-            method='POST',
-            timeout=10,
-            speech_timeout='auto'
-        )
-        response.append(gather)
-        
-        # If no input is received, repeat the message
-        response.redirect('/voice')
-        
-        return str(response)
+        try:
+            print("Creating initial TwiML")
+            response = VoiceResponse()
+            
+            # Add a pause to ensure the call is connected
+            response.pause(length=1)
+            
+            initial_message = (
+                "Hello! I'm calling from Nuclei regarding your job application. "
+                "This call will be recorded for quality purposes. "
+                "Do you consent to proceed with the interview? Press 1 for yes, or 2 for no."
+            )
+            print(f"Initial message: {initial_message}")
+            
+            response.say(initial_message, voice='Polly.Raveena')
+            
+            # Create gather with absolute URL and candidate_id
+            gather_url = f'{self.ngrok_url}/gather'
+            if candidate_id:
+                gather_url += f'?candidate_id={candidate_id}'
+            
+            gather = Gather(
+                num_digits=1,
+                action=gather_url,
+                method='POST',
+                timeout=10,
+                speech_timeout='auto'
+            )
+            print("Created Gather verb")
+            response.append(gather)
+            
+            # If no input is received, repeat the message with absolute URL and candidate_id
+            redirect_url = f'{self.ngrok_url}/voice'
+            if candidate_id:
+                redirect_url += f'?candidate_id={candidate_id}'
+            response.redirect(redirect_url)
+            
+            twiml = str(response)
+            print(f"Generated TwiML: {twiml}")
+            return twiml
+        except Exception as e:
+            print(f"Error creating initial TwiML: {str(e)}")
+            print(f"Error type: {type(e)}")
+            import traceback
+            print(f"Traceback: {traceback.format_exc()}")
+            raise
 
     def handle_consent(self, digits):
         """Handle the candidate's consent response."""

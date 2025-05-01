@@ -12,13 +12,31 @@ class VoiceProcessor:
         """Handle incoming Twilio voice call."""
         try:
             print(f"Handling incoming call: {request.form}")
-            candidate_id = request.args.get('candidate_id')
+            print(f"Request args: {request.args}")
+            print(f"Request headers: {request.headers}")
+            
+            # Get candidate_id from either args or form
+            candidate_id = request.args.get('candidate_id') or request.form.get('candidate_id')
             print(f"Candidate ID from request: {candidate_id}")
-            return self.call_handler.create_initial_twiml()
+            
+            if not candidate_id:
+                print("Warning: No candidate_id provided in request")
+                response = VoiceResponse()
+                response.say("I'm sorry, there was an error with the call setup. Please try again later.", voice='Polly.Raveena')
+                response.hangup()
+                return str(response)
+                
+            twiml = self.call_handler.create_initial_twiml(candidate_id)
+            print(f"Generated TwiML: {twiml}")
+            return twiml
         except Exception as e:
             print(f"Error in handle_incoming_call: {str(e)}")
+            print(f"Error type: {type(e)}")
+            import traceback
+            print(f"Traceback: {traceback.format_exc()}")
             response = VoiceResponse()
             response.say("I'm sorry, there was an error processing your call. Please try again later.", voice='Polly.Raveena')
+            response.hangup()
             return str(response)
 
     def process_response(self, request):
