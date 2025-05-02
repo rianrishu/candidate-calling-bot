@@ -226,8 +226,7 @@ class CallHandler:
             response.redirect(redirect_url)
         else:
             response.say(
-                "Thank you for providing all the information. If shortlisted, "
-                "someone from our team will reach out to you soon. Have a great day!",
+                "Thank you for providing all the information. I will share this with our panel, if shortlisted someone from our team will reach out to you soon.",
                 voice='Polly.Raveena'
             )
             response.hangup()
