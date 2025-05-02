@@ -175,6 +175,14 @@ class CallHandler:
             )
             return str(self.ask_next_question(response, 1, candidate_id))
         else:
+            # Update status to no_answer when consent is not given
+            self.sheets_manager.update_candidate_status(candidate_id, 'no_answer', {
+                'reason': 'no_consent',
+                'timestamp': None,
+                'call_sid': None,
+                'call_duration': '0',
+                'answered_by': 'unknown'
+            })
             response.say(
                 "Thank you for your time. We respect your decision. Have a great day!",
                 voice='Polly.Raveena'

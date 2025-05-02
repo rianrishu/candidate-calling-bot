@@ -76,6 +76,15 @@ def call_status():
             print(f"Warning: No candidate_id found in request for CallSid: {call_sid}")
             return '', 200
         
+        # Get current candidate status
+        current_candidate = sheets_manager.get_candidate_by_id(candidate_id)
+        current_status = current_candidate.get('status', '') if current_candidate else ''
+        
+        # If the current status is no_answer (from no consent), don't update it
+        if current_status == 'no_answer':
+            print(f"Preserving no_answer status for candidate {candidate_id}")
+            return '', 200
+        
         # Update candidate status in sheets
         status_mapping = {
             'initiated': 'calling',
