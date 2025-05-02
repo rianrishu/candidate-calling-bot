@@ -121,28 +121,29 @@ class CallHandler:
             initial_message = (
                 "Hello! I'm calling from Nuclei regarding your job application. "
                 "This call will be recorded for quality purposes. "
-                "Do you consent to proceed with the interview? Press 1 for yes, or 2 for no."
+                "Do you consent to proceed with the interview? Please say yes or no."
             )
             print(f"Initial message: {initial_message}")
             
             response.say(initial_message, voice='Polly.Raveena')
             
-            # Create gather with absolute URL and candidate_id
+            # Create gather with speech input instead of digits
             gather_url = f'{self.ngrok_url}/gather'
             if candidate_id:
                 gather_url += f'?candidate_id={candidate_id}'
             
             gather = Gather(
-                num_digits=1,
+                input='speech',
                 action=gather_url,
                 method='POST',
+                language='en-IN',
                 timeout=10,
                 speech_timeout='auto'
             )
             print("Created Gather verb")
             response.append(gather)
             
-            # If no input is received, repeat the message with absolute URL and candidate_id
+            # If no input is received, repeat the message
             redirect_url = f'{self.ngrok_url}/voice'
             if candidate_id:
                 redirect_url += f'?candidate_id={candidate_id}'
@@ -160,11 +161,13 @@ class CallHandler:
 
     def handle_consent(self, digits, candidate_id=None):
         """Handle the candidate's consent response."""
-        print(f"Handling consent with digits: {digits}, candidate_id: {candidate_id}")
+        print(f"Handling consent with speech result: {digits}, candidate_id: {candidate_id}")
         response = VoiceResponse()
         
-        #add call me later feature
-        if digits == '1':
+        # Convert speech result to lowercase for comparison
+        speech_result = digits.lower() if isinstance(digits, str) else ''
+        
+        if 'yes' in speech_result:
             response.say(
                 "Thank you. I'll now ask you a series of questions about your "
                 "application. Please answer each question after the beep.",

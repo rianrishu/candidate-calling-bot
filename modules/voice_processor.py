@@ -48,12 +48,12 @@ class VoiceProcessor:
             print(f"Candidate ID: {candidate_id}, Question number: {question_number}")
             
             if question_number == 0:  # Initial consent
-                digits = request.form.get('Digits', None)
-                print(f"Consent digits: {digits}")
-                if not digits:
-                    # If no digits received, repeat the initial message
+                speech_result = request.form.get('SpeechResult', None)
+                print(f"Consent speech result: {speech_result}")
+                if not speech_result:
+                    # If no speech received, repeat the initial message
                     return self.call_handler.create_initial_twiml(candidate_id)
-                return self.call_handler.handle_consent(digits, candidate_id)
+                return self.call_handler.handle_consent(speech_result, candidate_id)
             
             # Process speech response
             speech_result = request.form.get('SpeechResult')
