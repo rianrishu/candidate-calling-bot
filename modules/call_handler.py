@@ -197,12 +197,11 @@ class CallHandler:
         print(f"Asking question number: {question_number}")
         questions = {
             1: "Where are you currently working?",
-            2: "What is your notice period?",
-            3: "By when can you join us?",
-            4: "Why do you want to join Nuclei?",  #4th Question remove this later
-            5: "What is your current or last drawn annual salary?",
-            6: "Is there a variable component in your salary?",
-            7: "What is your expected salary?"
+            2: "Since when are you working in the current company?",
+            3: "What is your notice period?",
+            4: "What is your current or last drawn annual salary?",
+            5: "Is there a variable component in your salary?",
+            6: "What is your expected salary?"
         }
         
         if question_number <= len(questions):

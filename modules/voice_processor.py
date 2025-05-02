@@ -66,12 +66,11 @@ class VoiceProcessor:
                 # Map question number to response field
                 response_mapping = {
                     1: 'current_company',
-                    2: 'notice_period',
-                    3: 'joining_date',
-                    4: 'reason_to_join',
-                    5: 'current_salary',
-                    6: 'variable_component',
-                    7: 'expected_salary'
+                    2: 'joining_date_current_company',
+                    3: 'notice_period',
+                    4: 'current_salary',
+                    5: 'variable_component',
+                    6: 'expected_salary'
                 }
                 
                 if question_number in response_mapping:
@@ -79,7 +78,7 @@ class VoiceProcessor:
                     print(f"Saved response for {response_mapping[question_number]}: {speech_result}")
                 
                 # If this was the last question, save all responses
-                if question_number == 7:
+                if question_number == 6:
                     print(f"Saving all responses for candidate {candidate_id}")
                     self.save_responses(candidate_id)
             
@@ -104,9 +103,8 @@ class VoiceProcessor:
             responses = self.responses.get(candidate_id, {})
             summary = (
                 f"Current Company: {responses.get('current_company', 'N/A')}\n"
+                f"Joining Date (Current Company): {responses.get('joining_date_current_company', 'N/A')}\n"
                 f"Notice Period: {responses.get('notice_period', 'N/A')}\n"
-                f"Joining Date: {responses.get('joining_date', 'N/A')}\n"
-                f"Reason to Join: {responses.get('reason_to_join', 'N/A')}\n"
                 f"Current Salary: {responses.get('current_salary', 'N/A')}\n"
                 f"Variable Component: {responses.get('variable_component', 'N/A')}\n"
                 f"Expected Salary: {responses.get('expected_salary', 'N/A')}"
