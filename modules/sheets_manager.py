@@ -125,19 +125,35 @@ class SheetsManager:
                 raise ValueError(f"Candidate {candidate_id} not found")
             
             # Prepare the update data
-            update_data = [new_status]
+            update_data = [new_status]  # Status in column G
             
             # Add additional data if provided
             if additional_data:
                 if isinstance(additional_data, dict):
-                    # Convert dict to string representation
-                    additional_data = str(additional_data)
-                update_data.append(additional_data)
+                    # Extract individual fields from additional_data
+                    current_company = additional_data.get('current_company', '')
+                    joining_date = additional_data.get('joining_date_current_company', '')
+                    notice_period = additional_data.get('notice_period', '')
+                    current_salary = additional_data.get('current_salary', '')
+                    variable_component = additional_data.get('variable_component', '')
+                    expected_salary = additional_data.get('expected_salary', '')
+                    call_summary = additional_data.get('call_summary', '')
+                    
+                    # Add each field to update_data
+                    update_data.extend([
+                        current_company,      # Column H
+                        joining_date,        # Column I
+                        notice_period,       # Column J
+                        current_salary,      # Column K
+                        variable_component,  # Column L
+                        expected_salary,     # Column M
+                        call_summary         # Column N
+                    ])
             
-            # Update the status column (G) and additional data column (H)
+            # Update the status column (G) and additional data columns (H through N)
             range_name = f'Sheet1!G{row_number}'
             if len(update_data) > 1:
-                range_name = f'Sheet1!G{row_number}:H{row_number}'
+                range_name = f'Sheet1!G{row_number}:N{row_number}'
             
             body = {
                 'values': [update_data]
