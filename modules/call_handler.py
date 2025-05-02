@@ -155,6 +155,7 @@ class CallHandler:
         print(f"Handling consent with digits: {digits}, candidate_id: {candidate_id}")
         response = VoiceResponse()
         
+        #add call me later feature
         if digits == '1':
             response.say(
                 "Thank you. I'll now ask you a series of questions about your "
@@ -173,12 +174,13 @@ class CallHandler:
 
     def ask_next_question(self, response, question_number, candidate_id=None):
         """Ask the next question in the sequence."""
+        # All this question will come from google sheet
         print(f"Asking question number: {question_number}")
         questions = {
             1: "Where are you currently working?",
             2: "What is your notice period?",
             3: "By when can you join us?",
-            4: "Why do you want to join Nuclei?",
+            4: "Why do you want to join Nuclei?",  #4th Question remove this later
             5: "What is your current or last drawn annual salary?",
             6: "Is there a variable component in your salary?",
             7: "What is your expected salary?"

@@ -12,6 +12,24 @@
         .status-badge {
             float: right;
         }
+        .call-summary {
+            margin-top: 1rem;
+            padding: 0.5rem;
+            background-color: #f8f9fa;
+            border-radius: 0.25rem;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .summary-toggle {
+            color: #0d6efd;
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .summary-toggle:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -51,6 +69,14 @@
             updateStartCallingButton();
         }
 
+        function toggleSummary(summaryId) {
+            const summaryElement = document.getElementById(summaryId);
+            const isHidden = summaryElement.style.display === 'none';
+            summaryElement.style.display = isHidden ? 'block' : 'none';
+            const toggleButton = document.getElementById(summaryId + '-toggle');
+            toggleButton.textContent = isHidden ? 'Hide Summary' : 'Show Summary';
+        }
+
         function getStatusBadgeClass(status) {
             const statusClasses = {
                 'pending': 'bg-secondary',
@@ -76,14 +102,30 @@
                         data.candidates.forEach(candidate => {
                             const card = document.createElement('div');
                             card.className = 'card candidate-card';
+                            
+                            // Create summary section if call_summary exists
+                            let summarySection = '';
+                            if (candidate.call_summary) {
+                                const summaryId = `summary-${candidate.candidate_id}`;
+                                summarySection = `
+                                    <div class="mt-2">
+                                        <a class="summary-toggle" id="${summaryId}-toggle" 
+                                           onclick="toggleSummary('${summaryId}')">Show Summary</a>
+                                        <div id="${summaryId}" class="call-summary" style="display: none;">
+                                            ${candidate.call_summary}
+                                        </div>
+                                    </div>
+                                `;
+                            }
+
                             card.innerHTML = `
                                 <div class="card-body">
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" 
-                                               id="candidate-${candidate.freshteam_id}"
-                                               ${selectedCandidates.has(candidate.freshteam_id) ? 'checked' : ''}
-                                               onchange="toggleCandidate('${candidate.freshteam_id}')">
-                                        <label class="form-check-label" for="candidate-${candidate.freshteam_id}">
+                                               id="candidate-${candidate.candidate_id}"
+                                               ${selectedCandidates.has(candidate.candidate_id) ? 'checked' : ''}
+                                               onchange="toggleCandidate('${candidate.candidate_id}')">
+                                        <label class="form-check-label" for="candidate-${candidate.candidate_id}">
                                             <strong>${candidate.name}</strong>
                                             <span class="badge ${getStatusBadgeClass(candidate.status)} status-badge">
                                                 ${candidate.status}
@@ -91,10 +133,12 @@
                                         </label>
                                     </div>
                                     <p class="card-text">
+                                        Candidate ID: ${candidate.candidate_id}<br>
                                         Phone: ${candidate.phone}<br>
                                         Role ID: ${candidate.role_id}<br>
                                         <a href="${candidate.jd_link}" target="_blank">Job Description</a>
                                     </p>
+                                    ${summarySection}
                                 </div>
                             `;
                             candidatesList.appendChild(card);

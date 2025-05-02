@@ -17,6 +17,7 @@ An automated system that calls job candidates and collects their basic informati
 2. Google Cloud Platform account with Sheets API enabled
 3. Twilio account with voice capabilities
 4. A Google Sheet with the following columns:
+   - Candidate ID
    - Freshteam ID
    - Name
    - Phone

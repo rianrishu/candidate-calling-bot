@@ -44,7 +44,7 @@ class SheetsManager:
         try:
             result = self.service.spreadsheets().values().get(
                 spreadsheetId=self.spreadsheet_id,
-                range='Sheet1!A2:F'
+                range='Sheet1!A2:G'
             ).execute()
             
             values = result.get('values', [])
@@ -54,14 +54,15 @@ class SheetsManager:
             # Convert to list of dictionaries
             candidates = []
             for row in values:
-                if len(row) >= 6:  # Ensure we have all required fields
+                if len(row) >= 7:  # Ensure we have all required fields
                     candidate = {
-                        'freshteam_id': row[0],
-                        'name': row[1],
-                        'phone': row[2],
-                        'role_id': row[3],
-                        'jd_link': row[4],
-                        'status': row[5] if len(row) > 5 else 'pending'
+                        'candidate_id': row[0],
+                        'freshteam_id': row[1],
+                        'name': row[2],
+                        'phone': row[3],
+                        'role_id': row[4],
+                        'jd_link': row[5],
+                        'status': row[6] if len(row) > 6 else 'pending'
                     }
                     candidates.append(candidate)
             
@@ -71,11 +72,11 @@ class SheetsManager:
             raise
     
     def get_candidate_by_id(self, candidate_id):
-        """Get a specific candidate by their Freshteam ID."""
+        """Get a specific candidate by their Candidate ID."""
         try:
             result = self.service.spreadsheets().values().get(
                 spreadsheetId=self.spreadsheet_id,
-                range='Sheet1!A2:F'
+                range='Sheet1!A2:G'
             ).execute()
             
             values = result.get('values', [])
@@ -84,14 +85,15 @@ class SheetsManager:
             
             # Find the candidate with matching ID
             for row in values:
-                if len(row) >= 6 and row[0] == candidate_id:
+                if len(row) >= 7 and row[0] == candidate_id:
                     return {
-                        'freshteam_id': row[0],
-                        'name': row[1],
-                        'phone': row[2],
-                        'role_id': row[3],
-                        'jd_link': row[4],
-                        'status': row[5] if len(row) > 5 else 'pending'
+                        'candidate_id': row[0],
+                        'freshteam_id': row[1],
+                        'name': row[2],
+                        'phone': row[3],
+                        'role_id': row[4],
+                        'jd_link': row[5],
+                        'status': row[6] if len(row) > 6 else 'pending'
                     }
             
             return None
@@ -132,10 +134,10 @@ class SheetsManager:
                     additional_data = str(additional_data)
                 update_data.append(additional_data)
             
-            # Update the status column (F)
-            range_name = f'Sheet1!F{row_number}'
+            # Update the status column (G) - moved one column right
+            range_name = f'Sheet1!G{row_number}'
             if len(update_data) > 1:
-                range_name = f'Sheet1!F{row_number}:G{row_number}'
+                range_name = f'Sheet1!G{row_number}:H{row_number}'
             
             body = {
                 'values': [update_data]
