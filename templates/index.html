@@ -86,9 +86,29 @@
                 'failed': 'bg-danger',
                 'busy': 'bg-warning',
                 'no_answer': 'bg-warning',
-                'canceled': 'bg-secondary'
+                'canceled': 'bg-secondary',
+                'rejected': 'bg-danger',
+                'disconnected': 'bg-warning',
+                'unknown': 'bg-secondary'
             };
             return statusClasses[status] || 'bg-secondary';
+        }
+
+        function formatStatus(status) {
+            const statusMap = {
+                'pending': 'Pending',
+                'calling': 'Calling',
+                'in_progress': 'In Progress',
+                'completed': 'Completed',
+                'failed': 'Failed',
+                'busy': 'Busy',
+                'no_answer': 'No Answer',
+                'canceled': 'Canceled',
+                'rejected': 'Rejected',
+                'disconnected': 'Disconnected',
+                'unknown': 'Unknown'
+            };
+            return statusMap[status] || status;
         }
 
         function loadCandidates() {
@@ -118,6 +138,24 @@
                                 `;
                             }
 
+                            // Format additional data if it exists
+                            let additionalInfo = '';
+                            if (candidate.additional_data) {
+                                try {
+                                    const data = JSON.parse(candidate.additional_data);
+                                    additionalInfo = `
+                                        <div class="mt-2 small text-muted">
+                                            ${data.reason ? `Reason: ${data.reason}<br>` : ''}
+                                            ${data.timestamp ? `Time: ${new Date(data.timestamp).toLocaleString()}<br>` : ''}
+                                            ${data.call_duration ? `Duration: ${data.call_duration}s<br>` : ''}
+                                            ${data.answered_by ? `Answered by: ${data.answered_by}` : ''}
+                                        </div>
+                                    `;
+                                } catch (e) {
+                                    console.error('Error parsing additional data:', e);
+                                }
+                            }
+
                             card.innerHTML = `
                                 <div class="card-body">
                                     <div class="form-check">
@@ -128,7 +166,7 @@
                                         <label class="form-check-label" for="candidate-${candidate.candidate_id}">
                                             <strong>${candidate.name}</strong>
                                             <span class="badge ${getStatusBadgeClass(candidate.status)} status-badge">
-                                                ${candidate.status}
+                                                ${formatStatus(candidate.status)}
                                             </span>
                                         </label>
                                     </div>
@@ -138,6 +176,7 @@
                                         Role ID: ${candidate.role_id}<br>
                                         <a href="${candidate.jd_link}" target="_blank">Job Description</a>
                                     </p>
+                                    ${additionalInfo}
                                     ${summarySection}
                                 </div>
                             `;

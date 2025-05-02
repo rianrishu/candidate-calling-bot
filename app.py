@@ -70,21 +70,46 @@ def call_status():
         call_status = request.form.get('CallStatus')
         candidate_id = request.args.get('candidate_id')
         
-        if candidate_id:
-            # Update candidate status in sheets
-            status_mapping = {
-                'initiated': 'calling',
-                'ringing': 'calling',
-                'answered': 'in_progress',
-                'completed': 'completed',
-                'failed': 'failed',
-                'busy': 'busy',
-                'no-answer': 'no_answer',
-                'canceled': 'canceled'
+        print(f"Call Status Update - CallSid: {call_sid}, Status: {call_status}, Candidate ID: {candidate_id}")
+        
+        if not candidate_id:
+            print(f"Warning: No candidate_id found in request for CallSid: {call_sid}")
+            return '', 200
+        
+        # Update candidate status in sheets
+        status_mapping = {
+            'initiated': 'calling',
+            'ringing': 'calling',
+            'answered': 'in_progress',
+            'completed': 'completed',
+            'failed': 'failed',
+            'busy': 'busy',
+            'no-answer': 'no_answer',
+            'no_answer': 'no_answer',  # Handle both formats
+            'canceled': 'canceled',
+            'rejected': 'rejected',
+            'declined': 'rejected',
+            'disconnected': 'disconnected'
+        }
+        
+        new_status = status_mapping.get(call_status.lower(), 'unknown')
+        print(f"Updating candidate {candidate_id} status to {new_status}")
+        
+        # Add additional data for various call outcomes
+        additional_data = None
+        if new_status in ['no_answer', 'busy', 'failed', 'canceled', 'rejected', 'disconnected']:
+            additional_data = {
+                'reason': call_status.lower(),
+                'timestamp': request.form.get('Timestamp'),
+                'call_sid': call_sid,
+                'call_duration': request.form.get('CallDuration', '0'),
+                'answered_by': request.form.get('AnsweredBy', 'unknown')
             }
-            
-            new_status = status_mapping.get(call_status, 'unknown')
-            sheets_manager.update_candidate_status(candidate_id, new_status)
+            print(f"Additional data for {candidate_id}: {additional_data}")
+        
+        # Update the status in sheets
+        sheets_manager.update_candidate_status(candidate_id, new_status, additional_data)
+        print(f"Successfully updated status for candidate {candidate_id}")
         
         return '', 200
     except Exception as e:

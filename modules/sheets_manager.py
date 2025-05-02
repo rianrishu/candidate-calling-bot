@@ -134,7 +134,7 @@ class SheetsManager:
                     additional_data = str(additional_data)
                 update_data.append(additional_data)
             
-            # Update the status column (G) - moved one column right
+            # Update the status column (G) and additional data column (H)
             range_name = f'Sheet1!G{row_number}'
             if len(update_data) > 1:
                 range_name = f'Sheet1!G{row_number}:H{row_number}'

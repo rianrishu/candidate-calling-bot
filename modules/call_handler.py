@@ -79,21 +79,29 @@ class CallHandler:
             call_url = f'{self.ngrok_url}/voice?candidate_id={candidate_id}'
             print(f"Creating call with URL: {call_url}")
             
+            # Update candidate status to calling before initiating the call
+            self.sheets_manager.update_candidate_status(candidate_id, 'calling')
+            
+            # Create status callback URL with candidate_id
+            status_callback_url = f'{self.ngrok_url}/call-status?candidate_id={candidate_id}'
+            print(f"Status callback URL: {status_callback_url}")
+            
             call = self.client.calls.create(
                 url=call_url,
                 to=formatted_phone,
                 from_=self.phone_number,
                 record=True,
                 recording_status_callback=f'{self.ngrok_url}/recording-status',
-                status_callback=f'{self.ngrok_url}/call-status',
-                status_callback_event=['initiated', 'ringing', 'answered', 'completed']
+                status_callback=status_callback_url,
+                status_callback_event=[
+                    'initiated', 'ringing', 'answered', 'completed',
+                    'busy', 'failed', 'no-answer', 'canceled',
+                    'disconnected', 'in-progress'
+                ],
+                status_callback_method='POST'
             )
             
             print(f"Call created with SID: {call.sid}")
-            
-            # Update candidate status in sheets
-            self.sheets_manager.update_candidate_status(candidate_id, 'calling')
-            
             return call.sid
         except Exception as e:
             print(f"Error initiating call: {str(e)}")
